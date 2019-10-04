@@ -16,7 +16,7 @@ flights0930 <- read.csv("flights0930.csv")
 flights0930_2 <- flights0930[,-c(1:9,35:65)]
 
 # 测试的数据，100000个, 已经删去没用的变量
-# write.csv(flights0930_2, "test_data")
+# write.csv(flights0930_2, "test_data.csv")
 # flights0930_2 <- read.csv("test_data.csv")
 
 # step1, step2
