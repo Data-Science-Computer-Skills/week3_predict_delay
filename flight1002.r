@@ -1,4 +1,4 @@
-
+install.packages("MASS")
 library(MASS)
 install.packages("rpart")
 library(rpart)
@@ -7,8 +7,8 @@ library(randomForest)
 install.packages("pROC")
 library(pROC)
 summary(flights0930)
-flights09300=flights0930#用全部数据的时候删去这一行
-flights0930 <- flights09300[1:10000,]#用全部数据的时候删去这一行
+flights09300 <- flights0930#用全部数据的时候删去这一行
+flights0930 <- flights09300[sample(1:nrow(flights0930),100000,replace=FALSE),] #用全部数据的时候删去这一行
 #若效果不好，可分为季节做
 #flights0930$spring=flights0930$month_1+flights0930$month_2+flights0930$month_3
 #flights0930$summer=flights0930$month_4+flights0930$month_5+flights0930$month_6
@@ -54,9 +54,9 @@ mse=apply(dif^2,2,mean)
 
 #step6
 flights0930_2l=flights0930_2
-flights0930_2l$ARRIVAL_DELAY[flights0930$ARRIVAL_DELAY<=0] <- 0
-flights0930_2l$ARRIVAL_DELAY[flights0930$ARRIVAL_DELAY>0] <- 1
+flights0930_2l$ARRIVAL_DELAY[flights0930$ARRIVAL_DELAY<=60] <- 0
+flights0930_2l$ARRIVAL_DELAY[flights0930$ARRIVAL_DELAY>60] <- 1
 
 #step7
-fit_full <- glm(ARRIVAL_DELAY~.,data = flights0930_2l)
+fit_full <- glm(ARRIVAL_DELAY~.,family=binomial(link="logit"),data = flights0930_2l)
 fit_step2 <- stepAIC(fit_full,direction="both")
