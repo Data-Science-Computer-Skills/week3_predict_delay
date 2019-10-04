@@ -6,6 +6,11 @@ output: html_document
 ---
 
 ```{r dealdata}
+library(MASS)
+library(rpart)
+library(randomForest)
+library(pROC)
+library(data.table)
 
 flight <- read.csv("flights.csv",colClasses=c("YEAR" = "character", "DEPARTURE_TIME" = "character",
                                               "MONTH" = "character", "WHEELS_OFF" = "character",

@@ -1,4 +1,3 @@
-library(ggplot2)
 library(data.table)
 
 flight <- read.csv("flights.csv",colClasses=c("YEAR" = "character", "DEPARTURE_TIME" = "character",
