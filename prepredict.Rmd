@@ -1,0 +1,177 @@
+---
+title: "homework3_pretest"
+author: "Denglinsui"
+date: "2019/10/4"
+output: html_document
+---
+
+```{r dealdata}
+
+flight <- read.csv("flights.csv",colClasses=c("YEAR" = "character", "DEPARTURE_TIME" = "character",
+                                              "MONTH" = "character", "WHEELS_OFF" = "character",
+                                              "DAY" = "character", "ORIGIN_AIRPORT" = "character",
+                                              "SCHEDULED_DEPARTURE" = "character", "WHEELS_ON" = "character",
+                                              "SCHEDULED_ARRIVAL" = "character", "ARRIVAL_TIME" = "character"))
+flight <- as.data.table(flight)
+
+#Date manipulate(departure_time)
+# flight$departure_time <- ISOdatetime(flight$YEAR, flight$MONTH, 
+#                                      flight$DAY,as.integer(substr(flight$SCHEDULED_DEPARTURE,1,2)),
+#                                      as.integer(substr(flight$SCHEDULED_DEPARTURE,3,4)),0)
+flights2 <- flight
+
+#Select col
+select_col <- c("MONTH", "DAY", "DAY_OF_WEEK", 
+                "AIRLINE", "ORIGIN_AIRPORT", "DESTINATION_AIRPORT", "SCHEDULED_DEPARTURE", 
+                "DEPARTURE_TIME", "DEPARTURE_DELAY", "TAXI_OUT", "SCHEDULED_TIME", 
+                "ELAPSED_TIME", "AIR_TIME", "DISTANCE", "TAXI_IN", "ARRIVAL_DELAY")
+flights2 <- flights2[, select_col, with=F]
+
+# nan
+flights2 <- na.omit(flights2, invert = F)
+
+flights2 <- flights2[is.na(as.numeric(flights2$ORIGIN_AIRPORT)),] #numeric airport id. should be deleted.
+
+flights2_dim <- dim(flights2)
+print(flights2_dim)
+
+# dummy variable
+library(nnet)
+month_mat <- class.ind(flights2$MONTH)
+colnames(month_mat) <- paste("month_", colnames(month_mat), sep = '')
+
+day_mat <- class.ind(flights2$DAY)
+colnames(day_mat) <- paste("day_", colnames(day_mat), sep = '')
+
+day_of_week_mat <- class.ind(flights2$DAY_OF_WEEK)
+colnames(day_of_week_mat) <- paste("day_of_week_", colnames(day_of_week_mat), sep = '')
+
+airline_mat <- class.ind(flights2$AIRLINE)
+colnames(airline_mat) <- paste("airline_", colnames(airline_mat), sep = '')
+
+# 300 airport, memory is full!!!
+# ori_airport_mat <- class.ind(flights2$ORIGIN_AIRPORT)
+# colnames(ori_airport_mat) <- paste("origin_airport_", colnames(ori_airport_mat), sep = '')
+# 
+# des_airport_mat <- class.ind(flights2$DESTINATION_AIRPORT)
+# colnames(des_airport_mat) <- paste("des_airport_", colnames(des_airport_mat), sep = '')
+
+## SCHEDULED_DEPARTURE
+flights2$SCHEDULED_DEPARTURE <- as.numeric(flights2$SCHEDULED_DEPARTURE)
+flights2$is_first_sch_dep <- 0
+flights2[between(SCHEDULED_DEPARTURE, 0, 799), is_first_sch_dep := 1 ]
+
+flights2$is_second_sch_dep <- 0
+flights2[between(SCHEDULED_DEPARTURE, 800, 1599), is_second_sch_dep := 1]
+
+flights2$is_third_sch_dep <- 0
+flights2[between(SCHEDULED_DEPARTURE, 1600, 2359), is_third_sch_dep := 1]
+
+## DEPARTURE_TIME
+flights2$DEPARTURE_TIME <- as.numeric(flights2$DEPARTURE_TIME)
+flights2$is_first_dep <- 0
+flights2[between(DEPARTURE_TIME, 0, 799), is_first_dep := 1]
+
+flights2$is_second_dep <- 0
+flights2[between(DEPARTURE_TIME, 800, 1599), is_second_dep := 1]
+
+flights2$is_third_dep <- 0
+flights2[between(DEPARTURE_TIME, 1600, 2359), is_third_dep := 1]
+
+
+flights2 <- cbind(flights2, month_mat, day_mat, day_of_week_mat,
+                  airline_mat) 
+
+# flights2 <- cbind(flights2, month_mat, day_mat, day_of_week_mat,
+#                   airline_mat, ori_airport_mat, des_airport_mat) 
+
+```
+
+Step1 and Step2 reconstruct data
+
+```{r step1_step2}
+#step1&2
+flights0930_2 <- flights2[,-c(1:9,35:65)]
+
+# 测试的数据，100000个, 已经删去没用的变量
+# write.csv(flights0930_2, "test_data")
+# flights0930_2 <- read.csv("test_data.csv")
+
+# step1, step2
+flights0930_2$DEPARTURE_DELAY=log(flights0930$DEPARTURE_DELAY-min(flights0930$DEPARTURE_DELAY)+1)
+# flights0930_2$TAXI_OUT=log(flights0930$TAXI_OUT)
+# flights0930_2$SCHEDULED_TIME=log(flights0930$SCHEDULED_TIME)
+# flights0930_2$ELAPSED_TIME=log(flights0930$ELAPSED_TIME)
+# flights0930_2$AIR_TIME=log(flights0930$AIR_TIME)
+# flights0930_2$DISTANCE=log(flights0930$DISTANCE)
+# flights0930_2$TAXI_IN=log(flights0930$TAXI_IN)
+flights0930_2[, 2:7] = log(flights0930_2[, 2:7])
+flights0930_2$ARRIVAL_DELAY=log(flights0930$ARRIVAL_DELAY-min(flights0930$ARRIVAL_DELAY)+1)
+
+train = sample(c(T,F),nrow(flights0930_2),rep=T)
+test = !train
+
+```
+
+```{r step3}
+# step3
+fit1 <- lm(ARRIVAL_DELAY~.,data = flights0930_2[train,])
+summary(fit1)
+fit_step <- stepAIC(fit1,direction="both")
+summary(fit_step)
+```
+
+```{r tree}
+# step4
+## 回归树
+fit_tree <- rpart(ARRIVAL_DELAY~.,data = flights0930_2[train,])
+summary(fit_tree)
+tree <- plot(fit_tree)
+```
+
+
+```{r randomforest}
+## 随机森林
+fit_forest <- randomForest(ARRIVAL_DELAY~., data = flights0930_2[train,],ntree=100,mtry=5,importance=TRUE, proximity=TRUE)
+print(fit_forest$importance)
+
+```
+
+```{r step4plot}
+#用画图来看变量的重要性
+jpeg("feature_importance.jpeg", height = 800, width = 800)
+varImpPlot(fit_forest, main = "variable importance")
+dev.off()
+```
+
+
+```{r step5}
+# step5验证
+pred1=predict(fit_step,newdata=flights0930_2[test,])
+pred2=predict(fit_tree,newdata=flights0930_2[test,])
+pred3=predict(fit_forest,newdata=flights0930_2[test,])
+result=cbind(pred1,pred2,pred3)
+#以均方误差作为评估标准
+dif=result-flights0930_2$ARRIVAL_DELAY[test]
+mse=apply(dif^2,2,mean)
+print(mse)
+##逐步回归的结果明显优于两种树方法，可能是因为树方法做得太粗糙
+```
+
+```{r step6}
+# step6
+flights0930_2l=flights0930_2
+flights0930_2l$ARRIVAL_DELAY[flights0930$ARRIVAL_DELAY<=60] <- 0
+flights0930_2l$ARRIVAL_DELAY[flights0930$ARRIVAL_DELAY>60] <- 1
+```
+
+
+```{r step7}
+# step7
+fit_full <- glm(ARRIVAL_DELAY~.,family=binomial(link="logit"),data = flights0930_2l)
+summary(fit_full)
+fit_step2 <- stepAIC(fit_full,direction="both")
+summary(fit_step2)
+```
+
+
