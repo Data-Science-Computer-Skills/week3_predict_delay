@@ -12,7 +12,7 @@ library(randomForest)
 library(pROC)
 library(data.table)
 
-flight <- read.csv("flights.csv",colClasses=c("YEAR" = "character", "DEPARTURE_TIME" = "character",
+flight <- read.csv("/jddata1/homework/flights.csv",colClasses=c("YEAR" = "character", "DEPARTURE_TIME" = "character",
                                               "MONTH" = "character", "WHEELS_OFF" = "character",
                                               "DAY" = "character", "ORIGIN_AIRPORT" = "character",
                                               "SCHEDULED_DEPARTURE" = "character", "WHEELS_ON" = "character",
@@ -103,15 +103,15 @@ flights0930_2 <- flights2[,-c(1:9,35:65)]
 # flights0930_2 <- read.csv("test_data.csv")
 
 # step1, step2
-flights0930_2$DEPARTURE_DELAY=log(flights0930$DEPARTURE_DELAY-min(flights0930$DEPARTURE_DELAY)+1)
-# flights0930_2$TAXI_OUT=log(flights0930$TAXI_OUT)
-# flights0930_2$SCHEDULED_TIME=log(flights0930$SCHEDULED_TIME)
-# flights0930_2$ELAPSED_TIME=log(flights0930$ELAPSED_TIME)
-# flights0930_2$AIR_TIME=log(flights0930$AIR_TIME)
-# flights0930_2$DISTANCE=log(flights0930$DISTANCE)
-# flights0930_2$TAXI_IN=log(flights0930$TAXI_IN)
+flights0930_2$DEPARTURE_DELAY=log(flights0930_2$DEPARTURE_DELAY-min(flights0930_2$DEPARTURE_DELAY)+1)
+# flights0930_2$TAXI_OUT=log(flights0930_2$TAXI_OUT)
+# flights0930_2$SCHEDULED_TIME=log(flights0930_2$SCHEDULED_TIME)
+# flights0930_2$ELAPSED_TIME=log(flights0930_2$ELAPSED_TIME)
+# flights0930_2$AIR_TIME=log(flights0930_2$AIR_TIME)
+# flights0930_2$DISTANCE=log(flights0930_2$DISTANCE)
+# flights0930_2$TAXI_IN=log(flights0930_2$TAXI_IN)
 flights0930_2[, 2:7] = log(flights0930_2[, 2:7])
-flights0930_2$ARRIVAL_DELAY=log(flights0930$ARRIVAL_DELAY-min(flights0930$ARRIVAL_DELAY)+1)
+flights0930_2$ARRIVAL_DELAY=log(flights0930_2$ARRIVAL_DELAY-min(flights0930_2$ARRIVAL_DELAY)+1)
 
 train = sample(c(T,F),nrow(flights0930_2),rep=T)
 test = !train
@@ -166,8 +166,8 @@ print(mse)
 ```{r step6}
 # step6
 flights0930_2l=flights0930_2
-flights0930_2l$ARRIVAL_DELAY[flights0930$ARRIVAL_DELAY<=60] <- 0
-flights0930_2l$ARRIVAL_DELAY[flights0930$ARRIVAL_DELAY>60] <- 1
+flights0930_2l$ARRIVAL_DELAY[flights0930_2$ARRIVAL_DELAY<=60] <- 0
+flights0930_2l$ARRIVAL_DELAY[flights0930_2$ARRIVAL_DELAY>60] <- 1
 ```
 
 
