@@ -96,7 +96,8 @@ Step1 and Step2 reconstruct data
 
 ```{r step1_step2}
 #step1&2
-flights0930_2 <- flights2[,-c(1:9,35:65)]
+flights0930_2 <- flights2[,-c(1:8,34:64)]
+# flights0930_2 <- flights0930_2[sample(1:nrow(flights0930_2), 10000, replace = F), ]
 
 # 测试的数据，100000个, 已经删去没用的变量
 # write.csv(flights0930_2, "test_data")
@@ -137,16 +138,16 @@ tree <- plot(fit_tree)
 
 ```{r randomforest}
 ## 随机森林
-fit_forest <- randomForest(ARRIVAL_DELAY~., data = flights0930_2[train,],ntree=100,mtry=5,importance=TRUE, proximity=TRUE)
-print(fit_forest$importance)
+#fit_forest <- randomForest(ARRIVAL_DELAY~., data = flights0930_2[train,],ntree=100,mtry=5,importance=TRUE, proximity=TRUE)
+#print(fit_forest$importance)
 
 ```
 
 ```{r step4plot}
 #用画图来看变量的重要性
-jpeg("feature_importance.jpeg", height = 800, width = 800)
-varImpPlot(fit_forest, main = "variable importance")
-dev.off()
+#jpeg("feature_importance.jpeg", height = 800, width = 800)
+#varImpPlot(fit_forest, main = "variable importance")
+#dev.off()
 ```
 
 
@@ -154,8 +155,9 @@ dev.off()
 # step5验证
 pred1=predict(fit_step,newdata=flights0930_2[test,])
 pred2=predict(fit_tree,newdata=flights0930_2[test,])
-pred3=predict(fit_forest,newdata=flights0930_2[test,])
-result=cbind(pred1,pred2,pred3)
+result=cbind(pred1, pred2)
+#pred3=predict(fit_forest,newdata=flights0930_2[test,])
+#result=cbind(pred1,pred2,pred3)
 #以均方误差作为评估标准
 dif=result-flights0930_2$ARRIVAL_DELAY[test]
 mse=apply(dif^2,2,mean)
@@ -173,10 +175,10 @@ flights0930_2l$ARRIVAL_DELAY[flights0930_2$ARRIVAL_DELAY>60] <- 1
 
 ```{r step7}
 # step7
-fit_full <- glm(ARRIVAL_DELAY~.,family=binomial(link="logit"),data = flights0930_2l)
-summary(fit_full)
-fit_step2 <- stepAIC(fit_full,direction="both")
-summary(fit_step2)
+# fit_full <- glm(ARRIVAL_DELAY~.,family=binomial(link="logit"),data = flights0930_2l)
+# summary(fit_full)
+# fit_step2 <- stepAIC(fit_full,direction="both")
+# summary(fit_step2)
 ```
 
 
