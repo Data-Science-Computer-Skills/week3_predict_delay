@@ -4,8 +4,11 @@ author: "Denglinsui"
 date: "2019/10/4"
 output: html_document
 ---
+## Analysis of the flight delay data
 
-```{r dealdata}
+### Pre-treat data
+We library relevant packages, read the data and transform them into data.table form firstly.
+```{r dealdata, message=FALSE}
 library(MASS)
 library(rpart)
 library(randomForest)
@@ -24,7 +27,10 @@ flight <- as.data.table(flight)
 #                                      flight$DAY,as.integer(substr(flight$SCHEDULED_DEPARTURE,1,2)),
 #                                      as.integer(substr(flight$SCHEDULED_DEPARTURE,3,4)),0)
 flights2 <- flight
+```
 
+Unlike before, we select all analyzable columns without preferences and 16 columns are selected.
+```{r dealdata2}
 #Select col
 select_col <- c("MONTH", "DAY", "DAY_OF_WEEK", 
                 "AIRLINE", "ORIGIN_AIRPORT", "DESTINATION_AIRPORT", "SCHEDULED_DEPARTURE", 
@@ -39,7 +45,12 @@ flights2 <- flights2[is.na(as.numeric(flights2$ORIGIN_AIRPORT)),] #numeric airpo
 
 flights2_dim <- dim(flights2)
 print(flights2_dim)
+```
 
+We want to convert arilines, airports, months, days of month, days of week and etcs into dummy variables. However, there are nearly 300 airports and if we take them into considerationm, the memory is full, so we delete it. (However, we can try to classify the airport to solve this problem.)
+
+The departure time influence the delay largely, whereas the departure time doesn't have meanings itself. Therefore, we split the departure time into three classes: 0~8, 8~16, 16~24.
+```{r dummyvariable}
 # dummy variable
 library(nnet)
 month_mat <- class.ind(flights2$MONTH)
@@ -86,13 +97,12 @@ flights2[between(DEPARTURE_TIME, 1600, 2359), is_third_dep := 1]
 
 flights2 <- cbind(flights2, month_mat, day_mat, day_of_week_mat,
                   airline_mat) 
-
 # flights2 <- cbind(flights2, month_mat, day_mat, day_of_week_mat,
 #                   airline_mat, ori_airport_mat, des_airport_mat) 
 
 ```
 
-Step1 and Step2 reconstruct data
+Finally, the tail of delay time is heavy, we use logarithm transformation to reduce the heavy tail. To retain the information as more as possible, we substruct the minimal of delay time and take the logarithm transformation.
 
 ```{r step1_step2}
 #step1&2
@@ -113,7 +123,11 @@ flights0930_2$DEPARTURE_DELAY=log(flights0930_2$DEPARTURE_DELAY-min(flights0930_
 # flights0930_2$TAXI_IN=log(flights0930_2$TAXI_IN)
 flights0930_2[, 2:7] = log(flights0930_2[, 2:7])
 flights0930_2$ARRIVAL_DELAY=log(flights0930_2$ARRIVAL_DELAY-min(flights0930_2$ARRIVAL_DELAY)+1)
+```
 
+
+After that, we extract the train set and the test set.
+```{r extracttraintest}
 train = sample(c(T,F),nrow(flights0930_2),rep=T)
 test = !train
 
