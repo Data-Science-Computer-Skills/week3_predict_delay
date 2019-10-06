@@ -114,6 +114,9 @@ flights0930_2 <- flights2[,-c(1:8,34:64)]
 # flights0930_2 <- read.csv("test_data.csv")
 
 # step1, step2
+qqnorm(flights0930_2$DEPARTURE_DELAY)
+qqnorm(log(flights0930_2$DEPARTURE_DELAY))
+
 flights0930_2$DEPARTURE_DELAY=log(flights0930_2$DEPARTURE_DELAY-min(flights0930_2$DEPARTURE_DELAY)+1)
 # flights0930_2$TAXI_OUT=log(flights0930_2$TAXI_OUT)
 # flights0930_2$SCHEDULED_TIME=log(flights0930_2$SCHEDULED_TIME)
@@ -152,16 +155,14 @@ tree <- plot(fit_tree)
 
 ```{r randomforest}
 ## 随机森林
-#fit_forest <- randomForest(ARRIVAL_DELAY~., data = flights0930_2[train,],ntree=100,mtry=5,importance=TRUE, proximity=TRUE)
-#print(fit_forest$importance)
+fit_forest <- randomForest(ARRIVAL_DELAY~., data = flights0930_2[sample(1:nrow(flights0930_2), 100000, replace = FALSE),],ntree=100,mtry=5,importance=TRUE, proximity=TRUE)
+print(fit_forest$importance)
 
 ```
 
 ```{r step4plot}
 #用画图来看变量的重要性
-#jpeg("feature_importance.jpeg", height = 800, width = 800)
-#varImpPlot(fit_forest, main = "variable importance")
-#dev.off()
+varImpPlot(fit_forest, main = "variable importance")
 ```
 
 
@@ -169,9 +170,8 @@ tree <- plot(fit_tree)
 # step5验证
 pred1=predict(fit_step,newdata=flights0930_2[test,])
 pred2=predict(fit_tree,newdata=flights0930_2[test,])
-result=cbind(pred1, pred2)
-#pred3=predict(fit_forest,newdata=flights0930_2[test,])
-#result=cbind(pred1,pred2,pred3)
+pred3=predict(fit_forest,newdata=flights0930_2[test,])
+result=cbind(pred1,pred2,pred3)
 #以均方误差作为评估标准
 dif=result-flights0930_2$ARRIVAL_DELAY[test]
 mse=apply(dif^2,2,mean)
@@ -181,7 +181,7 @@ print(mse)
 
 ```{r step6}
 # step6
-flights0930_2l=flights0930_2
+flights0930_2l=flights0930_2[sample(1:nrow(flights0930_2), 100000, replace = FALSE)]
 flights0930_2l$ARRIVAL_DELAY[flights0930_2$ARRIVAL_DELAY<=60] <- 0
 flights0930_2l$ARRIVAL_DELAY[flights0930_2$ARRIVAL_DELAY>60] <- 1
 ```
@@ -189,10 +189,10 @@ flights0930_2l$ARRIVAL_DELAY[flights0930_2$ARRIVAL_DELAY>60] <- 1
 
 ```{r step7}
 # step7
-# fit_full <- glm(ARRIVAL_DELAY~.,family=binomial(link="logit"),data = flights0930_2l)
-# summary(fit_full)
-# fit_step2 <- stepAIC(fit_full,direction="both")
-# summary(fit_step2)
+fit_full <- glm(ARRIVAL_DELAY~.,family=binomial(link="logit"),data = flights0930_2l)
+summary(fit_full)
+fit_step2 <- stepAIC(fit_full,direction="both")
+summary(fit_step2)
 ```
 
 
