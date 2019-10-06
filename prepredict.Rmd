@@ -50,6 +50,7 @@ print(flights2_dim)
 We want to convert arilines, airports, months, days of month, days of week and etcs into dummy variables. However, there are nearly 300 airports and if we take them into considerationm, the memory is full, so we delete it. (However, we can try to classify the airport to solve this problem.)
 
 The departure time influence the delay largely, whereas the departure time doesn't have meanings itself. Therefore, we split the departure time into three classes: 0~8, 8~16, 16~24.
+
 ```{r dummyvariable}
 # dummy variable
 library(nnet)
@@ -136,14 +137,24 @@ test = !train
 
 ```
 
-```{r step3}
+### Linear Model and Variable Selection
+In this part, we use simple linear regression to predict flight delay as response and then use backward and forward selection to identify the most relevant predictors.
+```{r linearregression}
 # step3
 fit1 <- lm(ARRIVAL_DELAY~.,data = flights0930_2[train,])
 summary(fit1)
+```
+
+The $t$ values of linear regression show these variables are correlated with the delay with high significance. To identify the most relevant predictors, we chose $AIC$ as our criterion and set direction as both. Since we are not going to find a best simple linear regression model but to observe the order of the importance of each predictor, we don't set the end condition.
+```{r linearregressionAIC}
 fit_step <- stepAIC(fit1,direction="both")
 summary(fit_step)
 ```
 
+The order of the importance with respect to this method is revealed in the above sheet. We can find the departure delay is the most influential variable, scheduled time is the second one and so on.
+
+### Tree Model and Variable Selection
+Also, we use tree model to do the same thing.
 ```{r tree}
 # step4
 ## 回归树
@@ -153,6 +164,12 @@ tree <- plot(fit_tree)
 ```
 
 
+The importance of the variables is revealed by the order of adding. The most important varialbes are departure delay and taxi out.
+
+The plot of the regression tree gives us a direct feeling.
+
+### Random Forest Model and Variable Selection
+Similarly, we use random forest model to conduct regression and identify the importance of variables. 
 ```{r randomforest}
 ## 随机森林
 fit_forest <- randomForest(ARRIVAL_DELAY~., data = flights0930_2[sample(1:nrow(flights0930_2), 100000, replace = FALSE),],ntree=100,mtry=5,importance=TRUE, proximity=TRUE)
@@ -165,6 +182,9 @@ print(fit_forest$importance)
 varImpPlot(fit_forest, main = "variable importance")
 ```
 
+
+### Test
+Now we use mean square error as the criterion to different models.
 
 ```{r step5}
 # step5验证
@@ -179,6 +199,11 @@ print(mse)
 ##逐步回归的结果明显优于两种树方法，可能是因为树方法做得太粗糙
 ```
 
+
+The mean square error of linear model is less than that of tree model. So in this problem, the performance of linear model is better than the tree model.
+
+### Logistic Regression
+Actually, in real life, we concern more about whether the flight would delay rather than the exact delay time. Therefore, we select 1 hour as the threshold: If the arrival delay is less than it, we assume the flight is delayed; otherwise, it doesn't.
 ```{r step6}
 # step6
 flights0930_2l=flights0930_2[sample(1:nrow(flights0930_2), 100000, replace = FALSE)]
@@ -187,6 +212,7 @@ flights0930_2l$ARRIVAL_DELAY[flights0930_2$ARRIVAL_DELAY>60] <- 1
 ```
 
 
+After that, we are able to conduct the logistics regression.
 ```{r step7}
 # step7
 fit_full <- glm(ARRIVAL_DELAY~.,family=binomial(link="logit"),data = flights0930_2l)
