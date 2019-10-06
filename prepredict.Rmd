@@ -116,7 +116,7 @@ flights0930_2 <- flights2[,-c(1:8,34:64)]
 
 # step1, step2
 qqnorm(flights0930_2$DEPARTURE_DELAY)
-qqnorm(log(flights0930_2$DEPARTURE_DELAY))
+qqnorm(log(flights0930_2$DEPARTURE_DELAY-min(flights0930_2$DEPARTURE_DELAY)+1))
 
 flights0930_2$DEPARTURE_DELAY=log(flights0930_2$DEPARTURE_DELAY-min(flights0930_2$DEPARTURE_DELAY)+1)
 # flights0930_2$TAXI_OUT=log(flights0930_2$TAXI_OUT)
