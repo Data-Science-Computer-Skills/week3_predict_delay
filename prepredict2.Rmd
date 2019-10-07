@@ -1,6 +1,9 @@
 ---
-title: "homework3_pretest2"
-author: "Denglinsui"
+title: "Homework3 predict flight delay"
+author: 
+- Linsui Deng 2019000152
+- Yonghua Su 2019000154
+- Maoyu Zhang 2019000157
 date: "2019/10/4"
 output: html_document
 ---
@@ -15,17 +18,13 @@ library(randomForest)
 library(pROC)
 library(data.table)
 
-flight <- read.csv("/jddata1/homework/flights.csv",colClasses=c("YEAR" = "character", "DEPARTURE_TIME" = "character",
+flight <- read.csv("flights.csv",colClasses=c("YEAR" = "character", "DEPARTURE_TIME" = "character",
                                               "MONTH" = "character", "WHEELS_OFF" = "character",
                                               "DAY" = "character", "ORIGIN_AIRPORT" = "character",
                                               "SCHEDULED_DEPARTURE" = "character", "WHEELS_ON" = "character",
                                               "SCHEDULED_ARRIVAL" = "character", "ARRIVAL_TIME" = "character"))
 flight <- as.data.table(flight)
 
-#Date manipulate(departure_time)
-# flight$departure_time <- ISOdatetime(flight$YEAR, flight$MONTH, 
-#                                      flight$DAY,as.integer(substr(flight$SCHEDULED_DEPARTURE,1,2)),
-#                                      as.integer(substr(flight$SCHEDULED_DEPARTURE,3,4)),0)
 flights2 <- flight
 rm(flight)
 ```
@@ -155,7 +154,7 @@ fit_tree <- rpart(ARRIVAL_DELAY~.,data = flights0930_2[train,])
 # rpartTrue2=as.party(fit_tree)
 ```
 
-![dogdog](tree.jpeg)
+![](tree.jpeg)
 
 It can be seen that in the regression tree model, the most effective variable for the partitioning interval is the DEPARTURE_DELAY, followed by TAXI_OUT, and the arrival delay is also increasing as the DEPARTURE_DELAY is increased. One third of the samples are in Node 4.
 
@@ -171,7 +170,7 @@ print(fit_forest$importance)
 
 ```
 
-![dogdog](forest.jpg)
+![](forest.jpg)
 ```{r step4plot}
 #用画图来看变量的重要性
 # varImpPlot(fit_forest, main = "variable importance")
