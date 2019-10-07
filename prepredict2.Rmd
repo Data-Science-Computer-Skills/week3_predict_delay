@@ -31,7 +31,7 @@ rm(flight)
 ```
 
 Unlike before, we select all analyzable columns without preferences and 16 columns are selected.
-```{r dealdata2}
+```{r dealdata2, warning=FALSE}
 #Select col
 select_col <- c("MONTH", "DAY", "DAY_OF_WEEK", 
                 "AIRLINE", "ORIGIN_AIRPORT", "DESTINATION_AIRPORT", "SCHEDULED_DEPARTURE", 
