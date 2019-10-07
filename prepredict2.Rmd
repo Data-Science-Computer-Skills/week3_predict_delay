@@ -27,6 +27,7 @@ flight <- as.data.table(flight)
 #                                      flight$DAY,as.integer(substr(flight$SCHEDULED_DEPARTURE,1,2)),
 #                                      as.integer(substr(flight$SCHEDULED_DEPARTURE,3,4)),0)
 flights2 <- flight
+rm(flight)
 ```
 
 Unlike before, we select all analyzable columns without preferences and 16 columns are selected.
@@ -43,8 +44,6 @@ flights2 <- na.omit(flights2, invert = F)
 
 flights2 <- flights2[is.na(as.numeric(flights2$ORIGIN_AIRPORT)),] #numeric airport id. should be deleted.
 
-flights2_dim <- dim(flights2)
-print(flights2_dim)
 ```
 
 We want to convert arilines, airports, months, days of month, days of week and etcs into dummy variables. However, there are nearly 300 airports and if we take them into considerationm, the memory is full, so we delete it. (However, we can try to classify the airport to solve this problem.)
@@ -97,6 +96,7 @@ Finally, the tail of delay time is heavy, we use logarithm transformation to red
 
 ```{r step1_step2}
 flights0930_2 <- flights2[,-c(1:8,34:64)]
+rm(flights2, day_mat, month_mat, day_of_week_mat, airline_mat)
 min_departure <- min(flights0930_2$DEPARTURE_DELAY)
 min_arrival <- min(flights0930_2$ARRIVAL_DELAY)
 flights0930_2 <- flights0930_2[flights0930_2$DEPARTURE_DELAY>0 & flights0930_2$ARRIVAL_DELAY>0, ]
